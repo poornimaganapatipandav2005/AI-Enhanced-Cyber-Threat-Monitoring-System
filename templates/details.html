@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Threat Details</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: #0f172a;
+            color: white;
+            font-family: Arial;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #00ffcc;
+        }
+
+        canvas {
+            background: #111827;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1f2937;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: #111827;
+            color: #00ffcc;
+        }
+
+        tr:nth-child(even) {
+            background: #374151;
+        }
+
+        a {
+            display: inline-block;
+            margin-top: 15px;
+            color: #00ffcc;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+{% include 'navbar.html' %}
+
+<div class="container mt-4">
+<h2>{{ attack_type.upper() }} ATTACK TREND (TODAY)</h2>
+
+<!-- LINE CHART -->
+<canvas id="threatChart"></canvas>
+
+
+<!-- TABLE -->
+<table border="1">
+    <tr>
+        <th>Time</th>
+        <th>IP</th>
+        <th>Endpoint</th>
+        <th>Method</th>
+        <th>Risk</th>
+        <th>Type</th>
+    </tr>
+
+    {% for row in records %}
+    <tr>
+        <td>{{ row["Time"] }}</td>
+        <td>{{ row["IP Address"] }}</td>
+        <td>{{ row["Endpoint"] }}</td>
+        <td>{{ row["Method"] }}</td>
+        <td>{{ row["Risk Score"] }}</td>
+        <td>{{ row["Threat Type"] }}</td>
+    </tr>
+    {% endfor %}
+</table>
+
+
+<script>
+    const data = {{ graph_data | tojson }};
+
+    const labels = Object.keys(data);
+    const values = Object.values(data);
+
+    new Chart(document.getElementById('threatChart'), {
+        type: 'line',   // ✅ LINE CHART
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Attacks per Hour',
+                data: values,
+                borderColor: '#00ffcc',
+                backgroundColor: 'rgba(0,255,204,0.2)',
+                borderWidth: 3,
+                pointRadius: 5,
+                tension: 0.4,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        color: 'white'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Hour of Day',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    }
+                },
+                y: {
+                    title: {
+                        display: true,
+                        text: 'Number of Attacks',
+                        color: 'white'
+                    },
+                    ticks: {
+                        color: 'white'
+                    }
+                }
+            }
+        }
+    });
+</script>
+
+<a href="{{ url_for('dashboard') }}">⬅ Back to Dashboard</a>
+
+</div>
+</body>
+</html>

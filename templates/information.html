@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Cyber Security Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+
+        *{
+            margin:0;
+            padding:0;
+            box-sizing:border-box;
+        }
+
+        body{
+            font-family:'Poppins',sans-serif;
+            background:linear-gradient(135deg,#020617,#0f172a,#111827);
+            min-height:100vh;
+            color:#ffffff;
+            overflow-x:hidden;
+        }
+
+        /* Animated Glow */
+        body::before{
+            content:'';
+            position:fixed;
+            width:450px;
+            height:450px;
+            background:rgba(0,255,255,0.08);
+            border-radius:50%;
+            top:-150px;
+            left:-120px;
+            filter:blur(120px);
+            z-index:-1;
+        }
+
+        body::after{
+            content:'';
+            position:fixed;
+            width:400px;
+            height:400px;
+            background:rgba(59,130,246,0.08);
+            border-radius:50%;
+            bottom:-120px;
+            right:-100px;
+            filter:blur(120px);
+            z-index:-1;
+        }
+
+        .main-container{
+            padding:50px 0;
+        }
+
+        .content-box{
+            background:rgba(15,23,42,0.75);
+            backdrop-filter:blur(18px);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:28px;
+            padding:50px;
+            box-shadow:
+                    0 10px 40px rgba(0,0,0,0.5),
+                    0 0 25px rgba(0,255,255,0.08);
+        }
+
+        .title{
+            text-align:center;
+            font-size:55px;
+            font-weight:700;
+            margin-bottom:20px;
+            background:linear-gradient(90deg,#00ffff,#3b82f6,#60a5fa);
+            -webkit-background-clip:text;
+            -webkit-text-fill-color:transparent;
+        }
+
+        .subtitle{
+            text-align:center;
+            color:#cbd5e1;
+            font-size:18px;
+            margin-bottom:50px;
+        }
+
+        .section-title{
+            font-size:32px;
+            font-weight:700;
+            margin-bottom:40px;
+            position:relative;
+            display:inline-block;
+        }
+
+        .section-title::after{
+            content:'';
+            position:absolute;
+            left:0;
+            bottom:-10px;
+            width:70%;
+            height:4px;
+            border-radius:20px;
+            background:linear-gradient(to right,#00ffff,#3b82f6);
+        }
+
+        .attack-card{
+            background:rgba(255,255,255,0.04);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:24px;
+            padding:35px;
+            transition:0.4s ease;
+            position:relative;
+            overflow:hidden;
+            margin-bottom:40px;
+        }
+
+        .attack-card::before{
+            content:'';
+            position:absolute;
+            top:0;
+            left:0;
+            width:100%;
+            height:5px;
+            background:linear-gradient(90deg,#00ffff,#3b82f6);
+        }
+
+        .attack-card:hover{
+            transform:translateY(-8px);
+            border-color:rgba(0,255,255,0.3);
+            box-shadow:0 15px 40px rgba(0,255,255,0.12);
+        }
+
+        .attack-card h3{
+            font-size:30px;
+            font-weight:700;
+            margin-bottom:20px;
+        }
+
+        .attack-card p{
+            color:#d1d5db;
+            line-height:1.9;
+            font-size:16px;
+        }
+
+        .attack-card ul{
+            list-style:none;
+            padding-left:0;
+            margin-top:20px;
+        }
+
+        .attack-card ul li{
+            position:relative;
+            padding-left:28px;
+            margin-bottom:14px;
+            color:#dbeafe;
+        }
+
+        .attack-card ul li::before{
+            content:'✔';
+            position:absolute;
+            left:0;
+            color:#00ffff;
+            font-weight:bold;
+        }
+
+        .iframe-container{
+            margin-top:30px;
+            border-radius:18px;
+            overflow:hidden;
+            border:1px solid rgba(255,255,255,0.08);
+            box-shadow:0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        iframe{
+            border:none;
+        }
+
+        .video-btn{
+            display:inline-block;
+            margin-top:25px;
+            padding:12px 30px;
+            border-radius:40px;
+            font-weight:600;
+            text-decoration:none;
+            transition:0.3s ease;
+        }
+
+        .video-btn:hover{
+            transform:scale(1.05);
+            color:white;
+        }
+
+        .red-btn{
+            border:2px solid #ef4444;
+            color:#ef4444;
+        }
+
+        .red-btn:hover{
+            background:#ef4444;
+            box-shadow:0 0 20px #ef4444;
+        }
+
+        .yellow-btn{
+            border:2px solid #f59e0b;
+            color:#f59e0b;
+        }
+
+        .yellow-btn:hover{
+            background:#f59e0b;
+            box-shadow:0 0 20px #f59e0b;
+        }
+
+        .blue-btn{
+            border:2px solid #3b82f6;
+            color:#3b82f6;
+        }
+
+        .blue-btn:hover{
+            background:#3b82f6;
+            box-shadow:0 0 20px #3b82f6;
+        }
+
+        .practice-box{
+            background:rgba(255,255,255,0.04);
+            border:1px solid rgba(255,255,255,0.08);
+            border-radius:24px;
+            padding:35px;
+            margin-top:25px;
+        }
+
+        .practice-box ul{
+            list-style:none;
+            padding-left:0;
+        }
+
+        .practice-box ul li{
+            position:relative;
+            padding-left:30px;
+            margin-bottom:18px;
+            color:#dbeafe;
+            font-size:17px;
+        }
+
+        .practice-box ul li::before{
+            content:'🛡';
+            position:absolute;
+            left:0;
+        }
+
+        @media(max-width:768px){
+
+            .content-box{
+                padding:25px;
+            }
+
+            .title{
+                font-size:38px;
+            }
+
+            .attack-card{
+                padding:25px;
+            }
+
+            .attack-card h3{
+                font-size:24px;
+            }
+        }
+
+    </style>
+</head>
+
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="container main-container">
+
+    <div class="content-box">
+
+        <h1 class="title">Cyber Security Information</h1>
+
+        <p class="subtitle">
+            Learn about common cyber attacks and how to stay protected online.
+        </p>
+
+        <!-- Section -->
+        <h2 class="section-title">Common Cyber Threats</h2>
+
+        <!-- Malware -->
+        <div class="attack-card">
+
+            <h3 style="color:#ff5c5c;">🦠 Malware</h3>
+
+            <p>
+                Malware is malicious software designed to damage systems,
+                steal data, or gain unauthorized access to computers and networks.
+            </p>
+
+            <ul>
+                <li>Ransomware encrypts files and demands payment.</li>
+                <li>Spyware secretly monitors user activity.</li>
+                <li>Trojans disguise themselves as safe software.</li>
+                <li>Worms spread automatically across networks.</li>
+            </ul>
+
+            <div class="iframe-container ratio ratio-16x9">
+
+                <iframe
+                    src="https://www.youtube.com/embed/7BXsaU42yok"
+                    title="Malware Explained"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+
+            </div>
+
+            <div class="text-center">
+
+                <a href="https://youtu.be/7BXsaU42yok"
+                   target="_blank"
+                   class="video-btn red-btn">
+
+                    ▶ Watch Malware Video
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- SQL Injection -->
+        <div class="attack-card">
+
+            <h3 style="color:#fbbf24;">💉 SQL Injection</h3>
+
+            <p>
+                SQL Injection is a cyber attack where attackers insert malicious
+                SQL commands into application input fields to manipulate databases.
+            </p>
+
+            <p>
+                Attackers may bypass authentication, access confidential data,
+                or even delete entire database records.
+            </p>
+
+            <div class="iframe-container ratio ratio-16x9">
+
+                <iframe
+                    src="https://www.youtube.com/embed/ciNHn38EyRc"
+                    title="SQL Injection Explained"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+
+            </div>
+
+            <div class="text-center">
+
+                <a href="https://youtu.be/ciNHn38EyRc"
+                   target="_blank"
+                   class="video-btn yellow-btn">
+
+                    ▶ Watch SQL Injection Video
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- DDoS -->
+        <div class="attack-card">
+
+            <h3 style="color:#60a5fa;">🔥 DDoS Attack</h3>
+
+            <p>
+                A Distributed Denial of Service (DDoS) attack floods servers
+                or networks with massive traffic to make services unavailable.
+            </p>
+
+            <p>
+                Hackers use multiple infected devices together to overload
+                websites and crash online services.
+            </p>
+
+            <div class="iframe-container ratio ratio-16x9">
+
+                <iframe
+                    src="https://www.youtube.com/embed/ilhGh9CEIwM"
+                    title="DDoS Attack Explained"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+
+            </div>
+
+            <div class="text-center">
+
+                <a href="https://youtu.be/ilhGh9CEIwM"
+                   target="_blank"
+                   class="video-btn blue-btn">
+
+                    ▶ Watch DDoS Video
+
+                </a>
+
+            </div>
+
+        </div>
+
+        <!-- Best Practices -->
+        <h2 class="section-title mt-5">Best Security Practices</h2>
+
+        <div class="practice-box">
+
+            <ul>
+                <li>Use strong and unique passwords.</li>
+                <li>Enable Two-Factor Authentication (2FA).</li>
+                <li>Keep software and operating systems updated.</li>
+                <li>Backup important files regularly.</li>
+                <li>Avoid clicking suspicious email links.</li>
+                <li>Install antivirus and firewall protection.</li>
+                <li>Learn to identify phishing attacks.</li>
+                <li>Use secure HTTPS websites only.</li>
+            </ul>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

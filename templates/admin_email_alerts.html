@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Email Alerts - Admin Panel</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+body{background:#000;color:#e2e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;}
+.page-shell{max-width:1220px;margin:0 auto;padding:28px 18px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;}
+.topbar h1{font-size:24px;font-weight:700;margin:0;}
+.topbar span{color:#00ffff;}
+.grid{display:grid;grid-template-columns:1.1fr .9fr;gap:18px;margin-bottom:18px;}
+.panel{background:rgba(15,23,42,.92);border:1px solid rgba(255,255,255,.08);border-radius:8px;}
+.panel-header{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:space-between;gap:12px;}
+.panel-title{font-size:15px;font-weight:600;margin:0;display:flex;align-items:center;gap:8px;}
+.panel-body{padding:18px;}
+.form-control,.form-select{background:#020617;border-color:#1e3a5f;color:#e2e8f0;}
+.form-control:focus,.form-select:focus{background:#020617;color:#fff;border-color:#00ffff;box-shadow:0 0 0 .2rem rgba(0,255,255,.12);}
+.form-label{font-size:12px;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;}
+.form-check-input{background-color:#020617;border-color:#1e3a5f;}
+.form-check-input:checked{background-color:#00cccc;border-color:#00cccc;}
+.hint{font-size:12px;color:#64748b;line-height:1.5;}
+.env-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid rgba(255,255,255,.05);padding:9px 0;font-size:13px;}
+.env-row:last-child{border-bottom:none;}
+.env-row span:first-child{color:#64748b;}
+code{color:#00ffff;}
+.table{--bs-table-bg:transparent;--bs-table-color:#cbd5e1;--bs-table-border-color:rgba(255,255,255,.06);}
+.table thead th{color:#64748b;font-size:11px;text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;}
+.table tbody tr:hover td{background:rgba(0,255,255,.035);}
+.badge-alert{border-radius:20px;padding:4px 9px;font-size:11px;font-weight:700;}
+.badge-sent{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+.badge-failed{background:rgba(239,68,68,.15);color:#ef4444;border:1px solid rgba(239,68,68,.3);}
+.badge-skip{background:rgba(245,158,11,.15);color:#f59e0b;border:1px solid rgba(245,158,11,.3);}
+.badge-type{background:rgba(0,255,255,.1);color:#00ffff;border:1px solid rgba(0,255,255,.25);}
+.badge-sev{background:rgba(168,85,247,.14);color:#c084fc;border:1px solid rgba(168,85,247,.3);}
+.btn-cyber{background:rgba(0,255,255,.12);border:1px solid rgba(0,255,255,.35);color:#00ffff;}
+.btn-cyber:hover{background:rgba(0,255,255,.22);color:#00ffff;}
+.btn-muted{background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.25);color:#cbd5e1;}
+.btn-muted:hover{background:rgba(148,163,184,.2);color:#fff;}
+.empty-state{text-align:center;padding:48px 16px;color:#64748b;}
+@media(max-width:900px){.topbar{align-items:flex-start;flex-direction:column;}.grid{grid-template-columns:1fr;}.table{font-size:13px;}}
+</style>
+</head>
+<body>
+<div class="page-shell">
+  <div class="topbar">
+    <div>
+      <h1>Email <span>Alert System</span></h1>
+      <div class="text-secondary small mt-1">Configure recipients, trigger types, duplicate protection, and delivery history.</div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="/admin_dashboard" class="btn btn-muted"><i class="fa fa-arrow-left"></i> Admin Dashboard</a>
+      <a href="/admin_logout" class="btn btn-outline-danger"><i class="fa fa-right-from-bracket"></i> Logout</a>
+    </div>
+  </div>
+
+  {% if message %}
+  <div class="alert alert-{{ message_type }} py-2">{{ message }}</div>
+  {% endif %}
+
+  <div class="grid">
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i class="fa fa-sliders" style="color:#00ffff"></i> Alert Controls</h2>
+        <span class="badge-alert {% if settings.enabled %}badge-sent{% else %}badge-failed{% endif %}">
+          {% if settings.enabled %}ENABLED{% else %}DISABLED{% endif %}
+        </span>
+      </div>
+      <form class="panel-body" method="post" action="/admin_email_alerts">
+        <input type="hidden" name="action" value="save">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" role="switch" id="enabled" name="enabled" {% if settings.enabled %}checked{% endif %}>
+          <label class="form-check-label" for="enabled">Send automatic threat alert emails</label>
+        </div>
+        <div class="mb-3">
+          <label for="recipients" class="form-label">Recipient Emails</label>
+          <textarea class="form-control" id="recipients" name="recipients" rows="3" placeholder="security@example.com, admin@example.com">{{ settings.recipients|join(', ') }}</textarea>
+          <div class="hint mt-1">Separate multiple recipients with commas, semicolons, or new lines.</div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Attack Types That Trigger Alerts</label>
+          <div class="row g-2">
+            {% for name, meta in attack_types.items() %}
+            <div class="col-md-6">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" name="attack_types" value="{{ name }}" id="type{{ loop.index }}" {% if name in settings.attack_types %}checked{% endif %}>
+                <label class="form-check-label" for="type{{ loop.index }}">{{ name }} <span class="text-secondary">({{ meta.severity }})</span></label>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="row g-3 align-items-end">
+          <div class="col-md-5">
+            <label for="dedupe_minutes" class="form-label">Duplicate Window</label>
+            <input type="number" min="0" class="form-control" id="dedupe_minutes" name="dedupe_minutes" value="{{ settings.dedupe_minutes }}">
+          </div>
+          <div class="col-md-7 d-flex gap-2">
+            <button type="submit" class="btn btn-cyber flex-fill"><i class="fa fa-floppy-disk"></i> Save Settings</button>
+            <button type="submit" name="action" value="test" class="btn btn-muted"><i class="fa fa-paper-plane"></i> Test Email</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <h2 class="panel-title"><i class="fa fa-key" style="color:#f59e0b"></i> SMTP Environment</h2>
+      </div>
+      <div class="panel-body">
+        <div class="env-row"><span>SMTP server</span><code>{{ smtp_config.server }}</code></div>
+        <div class="env-row"><span>SMTP port</span><code>{{ smtp_config.port }}</code></div>
+        <div class="env-row"><span>Sender email</span><code>{{ smtp_config.sender or 'not set' }}</code></div>
+        <div class="env-row"><span>Username env</span><span>{{ 'set' if smtp_config.username_set else 'missing' }}</span></div>
+        <div class="env-row"><span>Password/API key env</span><span>{{ 'set' if smtp_config.password_set else 'missing' }}</span></div>
+        <div class="env-row"><span>TLS</span><span>{{ 'enabled' if smtp_config.tls else 'disabled' }}</span></div>
+        <div class="hint mt-3">
+          Set secrets with environment variables: <code>MAIL_SERVER</code>, <code>MAIL_PORT</code>,
+          <code>MAIL_USERNAME</code>, <code>MAIL_PASSWORD</code>, <code>MAIL_SENDER</code>,
+          <code>MAIL_USE_TLS</code>, and optional <code>ADMIN_ALERT_RECIPIENT</code>.
+        </div>
+        <a class="btn btn-cyber mt-3" href="/test_email_alert"><i class="fa fa-envelope"></i> Send Sample Alert Route</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel mb-4">
+    <div class="panel-header">
+      <h2 class="panel-title"><i class="fa fa-filter" style="color:#00ffff"></i> History Filters</h2>
+      <span class="text-secondary small">{{ alerts|length }} record(s)</span>
+    </div>
+    <form class="panel-body" method="get" action="/admin_email_alerts">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <label for="date" class="form-label">Date</label>
+          <input type="date" class="form-control" id="date" name="date" value="{{ selected_date }}">
+        </div>
+        <div class="col-md-5">
+          <label for="email" class="form-label">Recipient Email</label>
+          <input type="search" class="form-control" id="email" name="email" value="{{ email_query }}" placeholder="Search by email address">
+        </div>
+        <div class="col-md-3 d-flex gap-2">
+          <button type="submit" class="btn btn-cyber flex-fill"><i class="fa fa-magnifying-glass"></i> Search</button>
+          <a href="/admin_email_alerts" class="btn btn-muted"><i class="fa fa-rotate-left"></i></a>
+        </div>
+      </div>
+    </form>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title"><i class="fa fa-envelope-circle-check" style="color:#22c55e"></i> Alert History</h2>
+    </div>
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>ID</th><th>Attack</th><th>Severity</th><th>Source IP</th><th>Recipient</th>
+            <th>Description</th><th>Timestamp</th><th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for alert in alerts %}
+          {% set status = alert.get('status','') %}
+          <tr>
+            <td class="text-secondary">{{ alert.get('id','') }}</td>
+            <td><span class="badge-alert badge-type">{{ alert.get('attack_type') or alert.get('alert_type','') }}</span></td>
+            <td><span class="badge-alert badge-sev">{{ alert.get('severity','') }}</span></td>
+            <td><code>{{ alert.get('source_ip','') }}</code></td>
+            <td><code>{{ alert.get('recipient','') }}</code></td>
+            <td>
+              <div>{{ alert.get('description') or alert.get('subject','') }}</div>
+              <div class="text-secondary small">{{ alert.get('recommended_action','') }}</div>
+            </td>
+            <td class="text-secondary" style="white-space:nowrap;">{{ alert.get('timestamp','') }}</td>
+            <td>
+              {% if status == 'SENT' %}
+              <span class="badge-alert badge-sent">SENT</span>
+              {% elif status.startswith('SKIPPED') %}
+              <span class="badge-alert badge-skip">{{ status }}</span>
+              {% else %}
+              <span class="badge-alert badge-failed">{{ status }}</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8">
+              <div class="empty-state">
+                <div class="fs-1 mb-2"><i class="fa fa-inbox"></i></div>
+                <div>No email alert records found.</div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

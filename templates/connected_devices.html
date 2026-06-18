@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Connected Devices – Cyber Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#000;color:#e2e8f0;font-family:'Segoe UI',sans-serif;min-height:100vh;}
+body::before{
+  content:'';position:fixed;inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,255,255,.025) 1px,transparent 1px);
+  background-size:50px 50px;pointer-events:none;z-index:0;
+}
+.page-wrap{position:relative;z-index:1;padding:24px;max-width:1200px;margin:0 auto;}
+
+.page-title{
+  text-align:center;font-size:28px;font-weight:800;
+  color:#00ffff;text-shadow:0 0 20px #00ffff66;
+  margin:16px 0 6px;
+}
+.page-sub{text-align:center;color:#475569;font-size:13px;margin-bottom:24px;}
+
+/* ── CONTROLS ── */
+.controls-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  background:rgba(15,23,42,.9);border:1px solid rgba(0,255,255,.15);
+  border-radius:12px;padding:14px 20px;margin-bottom:22px;
+  flex-wrap:wrap;gap:12px;
+}
+.auto-refresh-info{
+  display:flex;align-items:center;gap:8px;font-size:13px;color:#64748b;
+}
+.pulse-dot{
+  width:8px;height:8px;border-radius:50%;background:#22c55e;
+  animation:pulse 1.5s infinite;
+}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,.4);}50%{box-shadow:0 0 0 6px rgba(34,197,94,0);}}
+.btn-scan{
+  padding:9px 20px;background:linear-gradient(135deg,#00ffff,#0ea5e9);
+  border:none;border-radius:9px;color:#000;font-weight:700;
+  font-size:14px;cursor:pointer;transition:.25s;
+  display:flex;align-items:center;gap:8px;
+}
+.btn-scan:hover{opacity:.85;transform:translateY(-1px);}
+.btn-scan:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.countdown{font-size:12px;color:#475569;}
+.countdown span{color:#00ffff;font-weight:700;}
+
+/* ── STATS ROW ── */
+.device-stats{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:14px;margin-bottom:22px;
+}
+.dev-stat{
+  background:rgba(15,23,42,.9);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;padding:16px;text-align:center;
+}
+.dev-stat .val{font-size:28px;font-weight:800;color:#00ffff;}
+.dev-stat .lbl{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-top:3px;}
+
+/* ── DEVICE CARDS ── */
+.devices-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:16px;
+}
+.device-card{
+  background:rgba(15,23,42,.9);
+  border:1px solid rgba(0,255,255,.12);
+  border-radius:14px;padding:18px;
+  transition:.25s;position:relative;overflow:hidden;
+}
+.device-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,#00ffff,transparent);
+}
+.device-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,255,255,.1);}
+.device-header{display:flex;align-items:center;gap:12px;margin-bottom:14px;}
+.device-icon{
+  width:42px;height:42px;border-radius:10px;
+  background:rgba(0,255,255,.1);border:1px solid rgba(0,255,255,.2);
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.device-name{font-size:14px;font-weight:600;color:#e2e8f0;}
+.device-type{font-size:11px;color:#475569;margin-top:2px;}
+.device-info{display:flex;flex-direction:column;gap:8px;}
+.info-row{display:flex;align-items:center;gap:8px;font-size:12px;}
+.info-row .lbl{color:#475569;min-width:70px;}
+.info-row .val{color:#e2e8f0;font-family:monospace;}
+.info-row .val.ip{color:#00ffff;}
+.info-row .val.mac{color:#f59e0b;}
+.status-badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+  background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.25);
+}
+.status-dot-sm{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 1.5s infinite;}
+
+/* ── EMPTY STATE ── */
+.empty-state{
+  text-align:center;padding:60px 20px;
+  background:rgba(15,23,42,.9);border:1px solid rgba(255,255,255,.06);
+  border-radius:14px;
+}
+.empty-state .big{font-size:56px;display:block;margin-bottom:14px;}
+.empty-state h3{color:#475569;margin-bottom:8px;}
+.empty-state p{color:#334155;font-size:13px;}
+
+/* ── LOADER ── */
+.scan-loader{
+  text-align:center;padding:50px;
+  background:rgba(15,23,42,.9);border:1px solid rgba(0,255,255,.15);
+  border-radius:14px;display:none;
+}
+.radar{
+  width:80px;height:80px;border-radius:50%;
+  border:2px solid rgba(0,255,255,.3);
+  position:relative;margin:0 auto 16px;
+  animation:radarSpin 2s linear infinite;
+}
+.radar::after{
+  content:'';position:absolute;top:50%;left:50%;
+  width:50%;height:2px;background:linear-gradient(90deg,#00ffff,transparent);
+  transform-origin:left center;
+}
+@keyframes radarSpin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+
+@media(max-width:768px){
+  .device-stats{grid-template-columns:1fr 1fr;}
+  .devices-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+{% include 'navbar.html' %}
+
+<div class="page-wrap">
+  <div class="page-title">📡 Real-Time Wi-Fi Devices</div>
+  <p class="page-sub">Live scanner for devices connected to your current Wi-Fi network</p>
+
+  <!-- Controls -->
+  <div class="controls-bar">
+    <div class="auto-refresh-info">
+      <div class="pulse-dot"></div>
+      <span>Auto-refresh in <span id="countdown" class="countdown"><span id="cdNum">30</span>s</span></span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span style="font-size:12px;color:#475569;">
+        Last scan: <span style="color:#94a3b8;" id="lastScan">
+          {% if devices %}just now{% else %}never{% endif %}
+        </span>
+      </span>
+      <button class="btn-scan" id="scanBtn" onclick="triggerScan()">
+        <i class="fa fa-radar" id="scanIcon"></i>
+        <span id="scanText">🔄 Scan Network</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="device-stats">
+    <div class="dev-stat">
+      <div class="val" id="devicesFound">{{ devices|length }}</div>
+      <div class="lbl">Devices Found</div>
+    </div>
+    <div class="dev-stat">
+      <div class="val" id="devicesOnline" style="color:#22c55e;">{{ devices|length }}</div>
+      <div class="lbl">Online</div>
+    </div>
+    <div class="dev-stat">
+      <div class="val" style="color:#f59e0b;">0</div>
+      <div class="lbl">Suspicious</div>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="scan-loader" id="scanLoader">
+    <div class="radar"></div>
+    <h5 style="color:#00ffff;margin-bottom:6px;">Scanning Network...</h5>
+    <p style="color:#475569;font-size:13px;">This may take up to 15 seconds</p>
+  </div>
+
+  <!-- Device Cards -->
+  <div id="devicesContainer">
+    {% if devices %}
+    <div class="devices-grid">
+      {% for d in devices %}
+      <div class="device-card">
+        <div class="device-header">
+          <div class="device-icon">
+            {% set ip = d.get('ip','') %}
+            {% if '192.168.1.1' in ip or '10.0.0.1' in ip %}🌐
+            {% elif loop.index <= 2 %}💻
+            {% else %}📱{% endif %}
+          </div>
+          <div>
+            <div class="device-name">
+              {{ d.get('host','Unknown Device') if d.get('host','Unknown') != 'Unknown' else 'Device #' ~ loop.index }}
+            </div>
+            <div class="device-type">Network Device</div>
+          </div>
+        </div>
+        <div class="device-info">
+          <div class="info-row">
+            <span class="lbl"><i class="fa fa-network-wired"></i> IP</span>
+            <span class="val ip">{{ d.get('ip','N/A') }}</span>
+          </div>
+          <div class="info-row">
+            <span class="lbl"><i class="fa fa-microchip"></i> MAC</span>
+            <span class="val mac">{{ d.get('mac','N/A') }}</span>
+          </div>
+          <div class="info-row">
+            <span class="lbl"><i class="fa fa-server"></i> Host</span>
+            <span class="val">{{ d.get('host','Unknown') }}</span>
+          </div>
+          <div class="info-row">
+            <span class="lbl"><i class="fa fa-circle-dot"></i> Status</span>
+            <span class="status-badge">
+              <span class="status-dot-sm"></span>
+              {{ d.get('status','Connected') }}
+            </span>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+      <span class="big">📡</span>
+      <h3>No Devices Found</h3>
+      <p>Click "Scan Network" to discover connected devices on your network.</p>
+    </div>
+    {% endif %}
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── SCAN TRIGGER ───────────────────────────────────────────
+function escapeHtml(value){
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;'
+  }[char]));
+}
+
+function renderDevices(devices){
+  const cont = document.getElementById('devicesContainer');
+  document.getElementById('devicesFound').textContent = devices.length;
+  document.getElementById('devicesOnline').textContent = devices.length;
+
+  if(!devices.length){
+    cont.innerHTML = `
+      <div class="empty-state">
+        <span class="big">📡</span>
+        <h3>No Devices Found</h3>
+        <p>No live devices were discovered. Check that you are connected to the network and try again.</p>
+      </div>`;
+    return;
+  }
+
+  cont.innerHTML = `
+    <div class="devices-grid">
+      ${devices.map((d, index) => {
+        const host = d.host && d.host !== 'Unknown' ? d.host : `Device #${index + 1}`;
+        return `
+          <div class="device-card">
+            <div class="device-header">
+              <div class="device-icon">${index <= 1 ? '💻' : '📱'}</div>
+              <div>
+                <div class="device-name">${escapeHtml(host)}</div>
+                <div class="device-type">Network Device</div>
+              </div>
+            </div>
+            <div class="device-info">
+              <div class="info-row">
+                <span class="lbl"><i class="fa fa-network-wired"></i> IP</span>
+                <span class="val ip">${escapeHtml(d.ip || 'N/A')}</span>
+              </div>
+              <div class="info-row">
+                <span class="lbl"><i class="fa fa-microchip"></i> MAC</span>
+                <span class="val mac">${escapeHtml(d.mac || 'N/A')}</span>
+              </div>
+              <div class="info-row">
+                <span class="lbl"><i class="fa fa-server"></i> Host</span>
+                <span class="val">${escapeHtml(d.host || 'Unknown')}</span>
+              </div>
+              <div class="info-row">
+                <span class="lbl"><i class="fa fa-circle-dot"></i> Status</span>
+                <span class="status-badge">
+                  <span class="status-dot-sm"></span>
+                  ${escapeHtml(d.status || 'Connected')}
+                </span>
+              </div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+async function triggerScan(){
+  const btn  = document.getElementById('scanBtn');
+  const loader = document.getElementById('scanLoader');
+  const cont = document.getElementById('devicesContainer');
+  btn.disabled = true;
+  document.getElementById('scanText').textContent = 'Scanning...';
+  loader.style.display = 'block';
+  cont.style.display   = 'none';
+  document.getElementById('lastScan').textContent = 'scanning...';
+  try {
+    const response = await fetch('/api/connected-devices', {cache: 'no-store'});
+    const data = await response.json();
+    renderDevices(data.devices || []);
+    document.getElementById('lastScan').textContent = 'just now';
+  } catch (err) {
+    cont.innerHTML = `
+      <div class="empty-state">
+        <span class="big">⚠️</span>
+        <h3>Scan Failed</h3>
+        <p>Unable to scan connected devices. Please try again.</p>
+      </div>`;
+    document.getElementById('lastScan').textContent = 'failed';
+  } finally {
+    loader.style.display = 'none';
+    cont.style.display = 'block';
+    btn.disabled = false;
+    document.getElementById('scanText').textContent = '🔄 Scan Network';
+    seconds = 30;
+    if(cdEl) cdEl.textContent = seconds;
+  }
+}
+
+// ── AUTO REFRESH COUNTDOWN ─────────────────────────────────
+let seconds = 30;
+const cdEl = document.getElementById('cdNum');
+const timer = setInterval(()=>{
+  seconds--;
+  if(cdEl) cdEl.textContent = seconds;
+  if(seconds <= 0){
+    clearInterval(timer);
+    triggerScan();
+  }
+},1000);
+
+document.addEventListener('DOMContentLoaded', triggerScan);
+</script>
+</body>
+</html>

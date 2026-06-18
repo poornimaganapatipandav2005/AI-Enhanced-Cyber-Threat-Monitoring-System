@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Contact - Cyber Dashboard</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #020617, #0f172a);
+            color: #ffffff;
+            font-family: 'Segoe UI', sans-serif;
+            transition: 0.3s;
+        }
+
+        /* LIGHT MODE */
+        body.light-mode {
+            background: #f1f5f9;
+            color: black;
+        }
+
+        /* NAVBAR */
+        .navbar {
+            background: #020617;
+            border-bottom: 1px solid #00ffff;
+        }
+
+        .navbar a {
+            color: #00ffff !important;
+        }
+
+        .navbar a:hover {
+            color: white !important;
+        }
+
+        .username {
+            color: #00ffff;
+            margin-right: 15px;
+        }
+
+        /* PAGE */
+        .container-box {
+            max-width: 800px;
+            margin: auto;
+            margin-top: 60px;
+        }
+
+        .card {
+            background: #111827;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(0,255,255,0.2);
+        }
+
+        body.light-mode .card {
+            background: white;
+            color: black;
+        }
+
+        h1 {
+            text-align: center;
+            color: #00ffff;
+            margin-bottom: 20px;
+        }
+
+        .info p {
+            color: #ffffff;
+            font-size: 16px;
+        }
+
+        .form-control {
+            background: #020617;
+            border: 1px solid #00ffff;
+            color: white;
+        }
+
+        body.light-mode .form-control {
+            background: white;
+            color: black;
+        }
+
+        .form-control::placeholder {
+            color: #94a3b8;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 5px #00ffff;
+            border-color: #00ffff;
+        }
+
+        .btn-send {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            background: #00ffff;
+            border: none;
+            color: black;
+            font-weight: bold;
+        }
+
+        .btn-send:hover {
+            background: #00cccc;
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .btn-back {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            background: #00ffff;
+            color: black;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ✅ NAVBAR -->
+{% include 'navbar.html' %}
+
+<div class="container-box">
+
+    <div class="card">
+
+        <h1>📞 Contact Us</h1>
+
+        <!-- INFO -->
+        <div class="info text-center">
+            <p>📧 Email: support@cyberdashboard.com</p>
+            <p>📱 Phone: +91-9876543210</p>
+            <p>📍 Location: India</p>
+        </div>
+
+        <!-- FORM -->
+        <form>
+            <div class="mb-3">
+                <input type="text" class="form-control" placeholder="Your Name" required>
+            </div>
+
+            <div class="mb-3">
+                <input type="email" class="form-control" placeholder="Your Email" required>
+            </div>
+
+            <div class="mb-3">
+                <textarea class="form-control" rows="4" placeholder="Your Message" required></textarea>
+            </div>
+
+            <button type="submit" class="btn-send">Send Message</button>
+        </form>
+
+        <!-- BACK -->
+        <div class="text-center">
+            <a href="/" class="btn-back">⬅ Back to Dashboard</a>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        © 2026 Cyber Threat Monitoring System
+    </div>
+
+</div>
+
+<!-- JS -->
+<script>
+function toggleTheme() {
+    document.body.classList.toggle("light-mode");
+}
+</script>
+
+</body>
+</html>

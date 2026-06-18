@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Security Event Map - Cyber Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#000;color:#e2e8f0;font-family:'Segoe UI',sans-serif;height:100vh;display:flex;flex-direction:column;}
+
+.map-header{
+  padding:12px 20px;
+  background:rgba(10,15,30,.98);
+  border-bottom:1px solid rgba(0,255,255,.15);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;flex-shrink:0;
+}
+.map-title{font-size:18px;font-weight:700;color:#00ffff;text-shadow:0 0 12px #00ffff66;}
+.map-stats{display:flex;gap:16px;flex-wrap:wrap;}
+.map-stat{
+  background:rgba(0,255,255,.08);border:1px solid rgba(0,255,255,.2);
+  border-radius:8px;padding:5px 14px;font-size:12px;
+}
+.map-stat span{color:#00ffff;font-weight:700;margin-right:4px;}
+
+#map{flex:1;min-height:0;}
+
+/* Leaflet popup dark theme */
+.leaflet-popup-content-wrapper{
+  background:rgba(15,23,42,.97);
+  border:1px solid rgba(0,255,255,.3);
+  border-radius:10px;color:#e2e8f0;
+  box-shadow:0 0 20px rgba(0,255,255,.2);
+}
+.leaflet-popup-tip{background:rgba(15,23,42,.97);}
+.leaflet-popup-content{margin:12px 16px;font-size:13px;line-height:1.7;}
+.leaflet-popup-content b{color:#00ffff;}
+.popup-threat{
+  display:inline-block;margin-top:6px;
+  padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700;
+  background:rgba(239,68,68,.2);color:#ef4444;border:1px solid rgba(239,68,68,.4);
+}
+.popup-meta{color:#94a3b8;font-size:12px;}
+.event-marker{
+  width:18px;height:18px;border-radius:50%;
+  border:2px solid #fff;box-shadow:0 0 12px currentColor;
+}
+.event-marker::after{
+  content:'';position:absolute;inset:-7px;border-radius:50%;
+  border:1px solid currentColor;opacity:.35;
+}
+
+/* Legend */
+.map-legend{
+  position:absolute;bottom:30px;right:10px;z-index:1000;
+  background:rgba(15,23,42,.95);border:1px solid rgba(0,255,255,.2);
+  border-radius:10px;padding:12px 16px;font-size:12px;
+}
+.legend-item{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+.legend-item:last-child{margin-bottom:0;}
+.legend-dot{width:12px;height:12px;border-radius:50%;}
+</style>
+</head>
+<body>
+{% include 'navbar.html' %}
+
+<div class="map-header">
+  <div class="map-title">Security Event World Map</div>
+  <div class="map-stats">
+    <div class="map-stat"><span>{{ stats.attacks }}</span> Attacks</div>
+    <div class="map-stat"><span>{{ stats.logins }}</span> Logins</div>
+    <div class="map-stat"><span>{{ stats.blocked }}</span> Blocked</div>
+    <div class="map-stat"><span>{{ stats.intruders }}</span> Intruders</div>
+    <div class="map-stat"><span id="mapTime"></span></div>
+    <a href="/" style="color:#00ffff;font-size:13px;text-decoration:none;
+       padding:5px 14px;border:1px solid rgba(0,255,255,.3);border-radius:8px;">
+      ← Dashboard
+    </a>
+  </div>
+</div>
+
+<div id="map"></div>
+
+<!-- Legend -->
+<div class="map-legend">
+  <div style="font-size:11px;color:#64748b;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">
+    Event Type
+  </div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ef4444;box-shadow:0 0 6px #ef4444;"></div> Attack</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#22c55e;box-shadow:0 0 6px #22c55e;"></div> Login</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f59e0b;box-shadow:0 0 6px #f59e0b;"></div> Blocked IP</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a855f7;box-shadow:0 0 6px #a855f7;"></div> Intruder</div>
+</div>
+
+<script>
+// ── CLOCK ──────────────────────────────────────────────────
+function tick(){
+  document.getElementById('mapTime').textContent =
+    new Date().toLocaleTimeString('en-IN');
+}
+tick(); setInterval(tick,1000);
+
+// ── MAP INIT ───────────────────────────────────────────────
+const map = L.map('map',{zoomControl:true}).setView([20,0],2);
+
+// Dark tile layer
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+  attribution:'&copy; OpenStreetMap &copy; CARTO',
+  maxZoom:19
+}).addTo(map);
+
+// ── ATTACK DATA ────────────────────────────────────────────
+const locations = {{ locations | tojson }};
+
+const eventColors = {
+  attack:'#ef4444',
+  login:'#22c55e',
+  blocked:'#f59e0b',
+  intruder:'#a855f7'
+};
+
+const eventLabels = {
+  attack:'Attack',
+  login:'Login',
+  blocked:'Blocked IP',
+  intruder:'Intruder'
+};
+
+function esc(value){
+  return String(value || '')
+    .replaceAll('&','&amp;')
+    .replaceAll('<','&lt;')
+    .replaceAll('>','&gt;')
+    .replaceAll('"','&quot;')
+    .replaceAll("'","&#039;");
+}
+
+locations.forEach(loc=>{
+  const color = eventColors[loc.category] || '#00ffff';
+  const label = eventLabels[loc.category] || 'Event';
+
+  const marker = L.divIcon({
+    className:'',
+    html:`<div class="event-marker" style="color:${color};background:${color};"></div>`,
+    iconSize:[18,18],
+    iconAnchor:[9,9],
+    popupAnchor:[0,-8]
+  });
+
+  const point = L.marker([loc.lat,loc.lon],{icon:marker}).addTo(map);
+
+  L.circleMarker([loc.lat,loc.lon],{
+    radius:18,
+    fillColor:'transparent',
+    color:color,
+    weight:1,
+    opacity:.3,
+    fillOpacity:0
+  }).addTo(map);
+
+  const parts = [
+    `<b>${esc(loc.title || label)}</b>`,
+    `<span class="popup-threat" style="color:${color};border-color:${color};background:${color}22;">${esc(label)}</span>`,
+    `<br><b>IP Address:</b> ${esc(loc.ip)}`,
+    loc.username ? `<br><b>Username:</b> ${esc(loc.username)}` : '',
+    loc.threat ? `<br><b>Threat:</b> ${esc(loc.threat)}` : '',
+    loc.risk ? `<br><b>Risk Score:</b> ${esc(loc.risk)}` : '',
+    loc.detail ? `<br><b>Details:</b> ${esc(loc.detail)}` : '',
+    loc.time ? `<br><b>Time:</b> ${esc(loc.time)}` : '',
+    `<br><b>Location:</b> ${esc(loc.city ? loc.city + ', ' + loc.country : loc.country)}`,
+    `<br><span class="popup-meta">Coordinates: ${Number(loc.lat).toFixed(2)}, ${Number(loc.lon).toFixed(2)}</span>`
+  ];
+
+  point.bindPopup(parts.join(''));
+});
+
+if(locations.length){
+  const bounds = L.latLngBounds(locations.map(loc=>[loc.lat,loc.lon]));
+  map.fitBounds(bounds.pad(.2),{maxZoom:5});
+}
+
+// ── AUTO REFRESH every 15s ─────────────────────────────────
+setTimeout(()=>location.reload(), 15000);
+</script>
+</body>
+</html>

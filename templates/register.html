@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Register – Cyber Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: radial-gradient(ellipse at top, #0d1b2a 0%, #020617 60%);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+    color: #e2e8f0; padding: 30px 0;
+  }
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,255,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,255,.04) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+  .card-wrap {
+    position: relative; z-index: 1;
+    width: 460px;
+    background: rgba(15,23,42,.92);
+    border: 1px solid rgba(0,255,255,.25);
+    border-radius: 20px;
+    padding: 40px 36px;
+    box-shadow: 0 0 40px rgba(0,255,255,.12), 0 20px 60px rgba(0,0,0,.5);
+    backdrop-filter: blur(12px);
+  }
+  .brand-icon {
+    width: 65px; height: 65px;
+    background: linear-gradient(135deg,#00ffff22,#0ea5e922);
+    border: 2px solid #00ffff55;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; margin: 0 auto 14px;
+    animation: iconPulse 3s ease-in-out infinite;
+  }
+  @keyframes iconPulse {
+    0%,100% { box-shadow: 0 0 10px #00ffff44; }
+    50%      { box-shadow: 0 0 25px #00ffff88; }
+  }
+  h2 { text-align: center; color: #00ffff; font-size: 22px; margin-bottom: 4px; }
+  .subtitle { text-align: center; color: #64748b; font-size: 13px; margin-bottom: 26px; }
+
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .form-label { font-size: 13px; color: #94a3b8; margin-bottom: 5px; display: block; }
+  .input-wrap { position: relative; margin-bottom: 16px; }
+  .input-wrap .icon {
+    position: absolute; left: 13px; top: 50%;
+    transform: translateY(-50%); color: #00ffff88; font-size: 13px;
+  }
+  .input-wrap input,
+  .input-wrap select {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    background: #0f172a;
+    border: 1px solid #1e3a5f;
+    border-radius: 10px;
+    color: #e2e8f0; font-size: 14px;
+    transition: border-color .25s, box-shadow .25s;
+  }
+  .input-wrap select { color: #94a3b8; }
+  .input-wrap select option { color: #0f172a; background: #e2e8f0; }
+  .input-wrap input:focus,
+  .input-wrap select:focus {
+    outline: none; border-color: #00ffff;
+    box-shadow: 0 0 0 3px rgba(0,255,255,.12);
+  }
+  .input-wrap input::placeholder { color: #475569; }
+
+  .field-error {
+    display: none;
+    color: #fca5a5;
+    font-size: 12px;
+    margin: -10px 0 12px;
+  }
+  .field-error.show { display: block; }
+
+  /* Strength bar */
+  .strength-bar { height: 4px; border-radius: 2px; margin-top: 5px; background: #1e293b; }
+  .strength-fill { height: 100%; border-radius: 2px; width: 0; transition: width .3s, background .3s; }
+  .strength-text { font-size: 11px; color: #64748b; margin-top: 3px; }
+
+  .pw-rules {
+    background: #0f172a; border: 1px solid #1e293b;
+    border-radius: 8px; padding: 8px 12px;
+    font-size: 12px; color: #64748b;
+    margin-bottom: 14px; list-style: none;
+  }
+  .pw-rules li { margin-bottom: 2px; }
+  .pw-rules li.ok { color: #22c55e; }
+
+  .btn-register {
+    width: 100%; padding: 12px;
+    background: linear-gradient(135deg,#00ffff,#0ea5e9);
+    border: none; border-radius: 10px;
+    color: #020617; font-weight: 700; font-size: 15px;
+    cursor: pointer;
+    transition: opacity .25s, transform .2s, box-shadow .25s;
+  }
+  .btn-register:hover {
+    opacity: .9; transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(0,255,255,.35);
+  }
+
+  .alert-msg {
+    border-radius: 10px; padding: 10px 14px;
+    font-size: 13px; margin-bottom: 16px;
+    display: flex; align-items: flex-start; gap: 8px;
+  }
+  .alert-danger  { background:#450a0a; border:1px solid #ef4444; color:#fca5a5; }
+  .alert-success { background:#052e16; border:1px solid #22c55e; color:#86efac; }
+
+  .login-link {
+    text-align: center; margin-top: 18px; font-size: 13px; color: #64748b;
+  }
+  .login-link a { color: #38bdf8; text-decoration: none; }
+  .login-link a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+<div class="card-wrap">
+
+  <div class="brand-icon">🛡️</div>
+  <h2>Create Account</h2>
+  <p class="subtitle">Join the Cyber Security Dashboard</p>
+
+  {% if msg %}
+  <div class="alert-msg alert-danger"><i class="fa fa-circle-xmark"></i> {{ msg }}</div>
+  {% endif %}
+  {% if success %}
+  <div class="alert-msg alert-success"><i class="fa fa-circle-check"></i> {{ success }}
+    <a href="/login" style="color:#86efac;margin-left:6px;">Login →</a>
+  </div>
+  {% endif %}
+
+  <form method="POST" id="regForm" novalidate>
+
+    <!-- Name row -->
+    <div class="row-2">
+      <div>
+        <label class="form-label">First Name</label>
+        <div class="input-wrap">
+          <i class="fa fa-user icon"></i>
+          <input name="fname" placeholder="First name"
+                 id="fname"
+                 value="{{ form.get('fname', '') }}"
+                 minlength="2" maxlength="30"
+                 pattern="[A-Za-z]+"
+                 title="Use alphabets only. Numbers, spaces, and special characters are not allowed."
+                 oninput="validateNameField(this, 'fnameError')"
+                 required>
+        </div>
+        <div class="field-error" id="fnameError">
+          First name must contain only alphabets.
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Last Name</label>
+        <div class="input-wrap">
+          <i class="fa fa-user icon"></i>
+          <input name="lname" placeholder="Last name"
+                 id="lname"
+                 value="{{ form.get('lname', '') }}"
+                 minlength="2" maxlength="30"
+                 pattern="[A-Za-z]+"
+                 title="Use alphabets only. Numbers, spaces, and special characters are not allowed."
+                 oninput="validateNameField(this, 'lnameError')"
+                 required>
+        </div>
+        <div class="field-error" id="lnameError">
+          Last name must contain only alphabets.
+        </div>
+      </div>
+    </div>
+
+    <label class="form-label">Email Address</label>
+    <div class="input-wrap">
+      <i class="fa fa-envelope icon"></i>
+      <input type="email" name="email" placeholder="you@example.com"
+             value="{{ form.get('email', '') }}" required>
+    </div>
+
+    <!-- Mobile + Gender row -->
+    <div class="row-2">
+      <div>
+        <label class="form-label">Mobile</label>
+        <div class="input-wrap">
+          <i class="fa fa-phone icon"></i>
+          <input name="mobile" placeholder="10-digit number"
+                 value="{{ form.get('mobile', '') }}"
+                 maxlength="10" pattern="[0-9]{10}"
+                 oninput="this.value=this.value.replace(/[^0-9]/g,'')" required>
+        </div>
+      </div>
+      <div>
+        <label class="form-label">Gender</label>
+        <div class="input-wrap">
+          <i class="fa fa-venus-mars icon"></i>
+          <select name="gender" required>
+            <option value="">Select</option>
+            <option {% if form.get('gender') == 'Male' %}selected{% endif %}>Male</option>
+            <option {% if form.get('gender') == 'Female' %}selected{% endif %}>Female</option>
+            <option {% if form.get('gender') == 'Other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <label class="form-label">Username</label>
+    <div class="input-wrap">
+      <i class="fa fa-at icon"></i>
+      <input name="username" placeholder="Choose a username"
+             value="{{ form.get('username', '') }}"
+             pattern="[A-Za-z0-9_]+" title="Letters, numbers and underscores only"
+             required>
+    </div>
+
+    <label class="form-label">Password</label>
+    <div class="input-wrap">
+      <i class="fa fa-lock icon"></i>
+      <input type="password" name="password" id="pw"
+             placeholder="Create a strong password"
+             oninput="checkStrength(this.value)" required>
+    </div>
+    <div class="strength-bar"><div class="strength-fill" id="sFill"></div></div>
+    <div class="strength-text" id="sText">Enter a password</div>
+
+    <ul class="pw-rules mt-2" id="pwRules">
+      <li id="r-len">At least 8 characters</li>
+      <li id="r-upper">At least one uppercase letter (A-Z)</li>
+      <li id="r-digit">At least one digit (0-9)</li>
+    </ul>
+
+    <label class="form-label">Confirm Password</label>
+    <div class="input-wrap">
+      <i class="fa fa-lock icon"></i>
+      <input type="password" name="confirm_password" id="cpw"
+             placeholder="Repeat your password" required>
+    </div>
+
+    <button type="submit" class="btn-register">
+      <i class="fa fa-user-plus"></i>&nbsp; Create Account
+    </button>
+
+  </form>
+
+  <div class="login-link">
+    Already have an account? <a href="/login">Login here</a>
+  </div>
+
+</div>
+
+<script>
+function validateNameField(input, errorId) {
+  const error = document.getElementById(errorId);
+  const isValid = /^[A-Za-z]*$/.test(input.value);
+  error.classList.toggle('show', !isValid);
+  input.setCustomValidity(isValid ? '' : 'Only alphabets are allowed.');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+  validateNameField(document.getElementById('fname'), 'fnameError');
+  validateNameField(document.getElementById('lname'), 'lnameError');
+});
+
+function checkStrength(pw) {
+  const fill  = document.getElementById('sFill');
+  const text  = document.getElementById('sText');
+  const rLen  = document.getElementById('r-len');
+  const rUp   = document.getElementById('r-upper');
+  const rDig  = document.getElementById('r-digit');
+
+  const hasLen  = pw.length >= 8;
+  const hasUp   = /[A-Z]/.test(pw);
+  const hasDig  = /\d/.test(pw);
+  const hasSp   = /[^A-Za-z0-9]/.test(pw);
+
+  rLen.className = hasLen ? 'ok' : '';
+  rUp.className  = hasUp  ? 'ok' : '';
+  rDig.className = hasDig ? 'ok' : '';
+
+  let score = [hasLen, hasUp, hasDig, hasSp].filter(Boolean).length;
+  const levels = [
+    { w:'0%',   bg:'#1e293b', label:'Enter a password' },
+    { w:'25%',  bg:'#ef4444', label:'Weak' },
+    { w:'50%',  bg:'#f59e0b', label:'Fair' },
+    { w:'75%',  bg:'#3b82f6', label:'Good' },
+    { w:'100%', bg:'#22c55e', label:'Strong ✓' },
+  ];
+  const lvl = levels[score] || levels[0];
+  fill.style.width      = lvl.w;
+  fill.style.background = lvl.bg;
+  text.textContent      = lvl.label;
+  text.style.color      = lvl.bg;
+}
+</script>
+</body>
+</html>

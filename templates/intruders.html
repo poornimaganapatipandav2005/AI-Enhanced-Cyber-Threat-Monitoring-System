@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Intruder Monitoring – Cyber Dashboard</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<style>
+  body { background:#000; color:#e2e8f0; font-family:'Segoe UI',sans-serif; }
+
+  body::before {
+    content:''; position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,255,255,.03) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(0,255,255,.03) 1px,transparent 1px);
+    background-size:40px 40px; pointer-events:none; z-index:0;
+  }
+
+  .page-title {
+    text-align:center; padding:30px 0 10px;
+    font-size:32px; font-weight:700; color:#00ffff;
+    text-shadow:0 0 20px #00ffff88;
+  }
+  .page-sub { text-align:center; color:#64748b; margin-bottom:30px; font-size:14px; }
+
+  .stats-row {
+    display:flex; gap:16px; justify-content:center;
+    flex-wrap:wrap; margin-bottom:30px;
+  }
+  .stat-pill {
+    background:rgba(15,23,42,.8);
+    border:1px solid rgba(0,255,255,.2);
+    border-radius:50px; padding:10px 22px;
+    font-size:14px; color:#94a3b8;
+  }
+  .stat-pill span { color:#00ffff; font-weight:700; font-size:18px; margin-right:6px; }
+
+  /* Intruder cards grid */
+  .cards-grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+    gap:20px; padding:0 20px 40px;
+    max-width:1400px; margin:0 auto;
+  }
+
+  .intruder-card {
+    background:rgba(15,23,42,.9);
+    border:1px solid rgba(239,68,68,.3);
+    border-radius:16px; overflow:hidden;
+    box-shadow:0 0 20px rgba(239,68,68,.1);
+    transition:transform .25s, box-shadow .25s;
+  }
+  .intruder-card:hover {
+    transform:translateY(-4px);
+    box-shadow:0 0 30px rgba(239,68,68,.25);
+  }
+
+  .card-img-wrap {
+    position:relative; height:200px;
+    background:#0f172a;
+    display:flex; align-items:center; justify-content:center;
+    overflow:hidden;
+  }
+  .card-img-wrap img {
+    width:100%; height:100%; object-fit:cover;
+  }
+  .card-img-wrap .no-img {
+    font-size:60px; opacity:.3;
+  }
+  .card-img-wrap .badge-threat {
+    position:absolute; top:10px; right:10px;
+    background:rgba(239,68,68,.85);
+    color:white; font-size:11px; font-weight:700;
+    padding:4px 10px; border-radius:20px;
+    backdrop-filter:blur(4px);
+  }
+  .card-img-wrap .idx-badge {
+    position:absolute; top:10px; left:10px;
+    background:rgba(0,0,0,.7);
+    color:#00ffff; font-size:11px; font-weight:700;
+    padding:4px 10px; border-radius:20px;
+  }
+
+  .card-body { padding:16px; }
+  .card-body .info-row {
+    display:flex; align-items:flex-start; gap:10px;
+    margin-bottom:10px; font-size:13px;
+  }
+  .card-body .info-row .lbl {
+    color:#64748b; min-width:90px; flex-shrink:0;
+  }
+  .card-body .info-row .val {
+    color:#e2e8f0; word-break:break-all;
+  }
+  .card-body .info-row .val.ip { color:#00ffff; font-family:monospace; }
+  .card-body .info-row .val.user { color:#f59e0b; font-weight:600; }
+
+  .card-footer-actions {
+    padding:12px 16px;
+    border-top:1px solid rgba(255,255,255,.06);
+    display:flex; gap:10px;
+  }
+  .btn-del {
+    flex:1; padding:8px;
+    background:rgba(239,68,68,.15);
+    border:1px solid rgba(239,68,68,.4);
+    border-radius:8px; color:#fca5a5;
+    font-size:13px; cursor:pointer;
+    transition:.25s;
+  }
+  .btn-del:hover { background:rgba(239,68,68,.3); }
+  .btn-view {
+    flex:1; padding:8px;
+    background:rgba(0,255,255,.08);
+    border:1px solid rgba(0,255,255,.25);
+    border-radius:8px; color:#00ffff;
+    font-size:13px; cursor:pointer; text-decoration:none;
+    display:flex; align-items:center; justify-content:center;
+    transition:.25s;
+  }
+  .btn-view:hover { background:rgba(0,255,255,.18); color:#00ffff; }
+
+  .empty-state {
+    text-align:center; padding:80px 20px; color:#334155;
+  }
+  .empty-state .big { font-size:64px; display:block; margin-bottom:16px; }
+  .empty-state h3 { color:#475569; margin-bottom:8px; }
+
+  /* Lightbox */
+  .lightbox {
+    display:none; position:fixed; inset:0;
+    background:rgba(0,0,0,.9); z-index:9999;
+    align-items:center; justify-content:center;
+  }
+  .lightbox.open { display:flex; }
+  .lightbox img { max-width:90vw; max-height:85vh; border-radius:12px; }
+  .lightbox-close {
+    position:absolute; top:20px; right:24px;
+    font-size:32px; color:white; cursor:pointer;
+    background:none; border:none;
+  }
+</style>
+</head>
+<body>
+
+{% include 'navbar.html' %}
+
+<div class="page-title">📸 Intruder Monitoring</div>
+<p class="page-sub">Captured intruder photos from failed login attempts</p>
+
+<!-- Stats -->
+<div class="stats-row">
+  <div class="stat-pill"><span>{{ records|length }}</span> Total Intruders</div>
+  <div class="stat-pill"><span style="color:#ef4444">⚠</span> All incidents logged</div>
+</div>
+
+{% if records %}
+<div class="cards-grid">
+  {% for r in records %}
+  <div class="intruder-card">
+
+    <!-- Photo -->
+    <div class="card-img-wrap">
+      <span class="idx-badge">#{{ loop.index }}</span>
+      <span class="badge-threat">🚨 INTRUDER</span>
+      {% set img = r.get('Image Name','') %}
+      {% if img and img != 'no_camera.jpg' %}
+        <img src="{{ url_for('static', filename='intruders/' ~ img) }}"
+             alt="Intruder photo"
+             onclick="openLightbox(this.src)"
+             style="cursor:zoom-in;">
+      {% else %}
+        <span class="no-img">📷</span>
+      {% endif %}
+    </div>
+
+    <!-- Info -->
+    <div class="card-body">
+      <div class="info-row">
+        <span class="lbl"><i class="fa fa-user"></i> Username</span>
+        <span class="val user">{{ r.get('Username Attempted','N/A') }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl"><i class="fa fa-network-wired"></i> IP Address</span>
+        <span class="val ip">{{ r.get('IP Address','N/A') }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl"><i class="fa fa-clock"></i> Date &amp; Time</span>
+        <span class="val">{{ r.get('Date Time','N/A') }}</span>
+      </div>
+      <div class="info-row">
+        <span class="lbl"><i class="fa fa-desktop"></i> Device</span>
+        <span class="val" style="font-size:11px;color:#64748b;">
+          {{ (r.get('Device Info','N/A') or 'N/A')[:80] }}…
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="lbl"><i class="fa fa-image"></i> Image</span>
+        <span class="val" style="font-size:11px;color:#475569;">{{ r.get('Image Name','N/A') }}</span>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card-footer-actions">
+      {% if r.get('Image Name','') and r.get('Image Name','') != 'no_camera.jpg' %}
+      <a class="btn-view"
+         href="{{ url_for('static', filename='intruders/' ~ r.get('Image Name','')) }}"
+         target="_blank">
+        <i class="fa fa-expand"></i>&nbsp; View Photo
+      </a>
+      {% endif %}
+      {% if session.get('admin') %}
+      <a href="/delete_intruder/{{ loop.index0 }}"
+         onclick="return confirm('Delete this intruder record?')"
+         class="btn-del">
+        <i class="fa fa-trash"></i>&nbsp; Delete
+      </a>
+      {% endif %}
+    </div>
+
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+  <span class="big">🛡️</span>
+  <h3>No Intruders Detected</h3>
+  <p>No failed login attempts have triggered the intruder capture system yet.</p>
+</div>
+{% endif %}
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+  <img id="lightboxImg" src="" alt="Intruder">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+function openLightbox(src) {
+  document.getElementById('lightboxImg').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+</script>
+</body>
+</html>
